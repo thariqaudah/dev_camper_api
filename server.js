@@ -8,7 +8,7 @@ const errorHandler = require('./middlewares/error');
 // Load environment variables
 dotenv.config({ path: './config/config.env' });
 
-// Connect to database
+// Database connection
 connectDB();
 
 // Route files
@@ -19,7 +19,7 @@ const app = express();
 // Bodyparser middleware
 app.use(express.json());
 
-// Logs request middleware 
+// Morgan middleware 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
