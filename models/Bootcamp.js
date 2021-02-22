@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const geocoder = require('../utils/geocoder');
 
 const bootcampSchema = new mongoose.Schema({
   name: {
@@ -36,25 +37,25 @@ const bootcampSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter an address']
   },
-  // location: {
-  //   // GeoJSON Point
-  //   type: {
-  //     type: String,
-  //     enum: ['Point'],
-  //     required: true
-  //   },
-  //   coordinates: {
-  //     type: [Number],
-  //     required: true,
-  //     index: '2dsphere'
-  //   },
-  //   formattedAddress: String,
-  //   street: String,
-  //   city: String,
-  //   state: String,
-  //   zipcode: String,
-  //   country: String
-  // },
+  location: {
+    // GeoJSON Point
+    type: {
+      type: String,
+      enum: ['Point'],
+      // required: true
+    },
+    coordinates: {
+      type: [Number],
+      // required: true,
+      index: '2dsphere'
+    },
+    formattedAddress: String,
+    street: String,
+    city: String,
+    state: String,
+    zipcode: String,
+    country: String
+  },
   careers: {
     type: [String],
     required: true,
@@ -103,6 +104,13 @@ const bootcampSchema = new mongoose.Schema({
 // Pre middleware for create slug
 bootcampSchema.pre('save', function(next) {
   this.slug = slugify(this.name, { remove: /[*+~.()'"!:@]/g, lower: true });
+  next();
+});
+
+// Pre middleware for save geocode location
+bootcampSchema.pre('save', async function(next) {
+  const res = await geocoder.geocode(this.address);
+  console.log(res);
   next();
 });
 
