@@ -8,11 +8,11 @@ const errorHandler = require('./middlewares/error');
 // Load environment variables
 dotenv.config({ path: './config/config.env' });
 
-// Database connection
-connectDB();
-
 // Route files
 const bootcampsRoute = require('./routes/bootcamps');
+
+// Database connection
+connectDB();
 
 const app = express();
 
