@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const geocoder = require('../utils/geocoder');
 
-const bootcampSchema = new mongoose.Schema({
+const BootcampSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Please enter a name'],
@@ -97,16 +97,19 @@ const bootcampSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Pre middleware for create slug
-bootcampSchema.pre('save', function(next) {
+BootcampSchema.pre('save', function(next) {
   this.slug = slugify(this.name, { remove: /[*+~.()'"!:@]/g, lower: true });
   next();
 });
 
 // Pre middleware for save geocode location
-bootcampSchema.pre('save', async function(next) {
+BootcampSchema.pre('save', async function(next) {
   const loc = await geocoder.geocode(this.address);
   this.location = {
     type: 'Point',
@@ -123,6 +126,12 @@ bootcampSchema.pre('save', async function(next) {
   next();
 });
 
-const Bootcamp = mongoose.model('Bootcamp', bootcampSchema);
+// Virtual field of courses for bootcamp
+BootcampSchema.virtual('courses', {
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'bootcamp'
+});
 
-module.exports = Bootcamp;
+
+module.exports = mongoose.model('Bootcamp', BootcampSchema);

@@ -10,6 +10,7 @@ dotenv.config({ path: './config/config.env' });
 
 // Route files
 const bootcampsRoute = require('./routes/bootcamps');
+const coursesRoute = require('./routes/courses');
 
 // Database connection
 connectDB();
@@ -24,8 +25,9 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Mount routes
+// Mounting routes
 app.use('/api/v1/bootcamps', bootcampsRoute);
+app.use('/api/v1/courses', coursesRoute);
 
 // Error handling middleware
 app.use(errorHandler);
@@ -33,7 +35,7 @@ app.use(errorHandler);
 // Listen to PORT
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => console.log(`App is running in ${process.env.NODE_ENV} mode on port ${PORT}`.blue.bold.underline));
+const server = app.listen(PORT, () => console.log(`App is running in ${process.env.NODE_ENV} mode on port ${PORT}`.bold.cyan));
 
 // Handle unhandled promise rejection
 process.on('unhandledRejection', (err, promise) => {

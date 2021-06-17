@@ -6,8 +6,15 @@ const {
   updateBootcamp,
   deleteBootcamp 
 } = require('../controllers/bootcamps');
+const { route } = require('./courses');
+
+// Load other resources route
+const courseRoute = require('./courses');
 
 const router = express.Router();
+
+// Re-route to other resource
+router.use('/:bootcampId/courses', courseRoute);
 
 router.route('/')
   .get(getBootcamps)
