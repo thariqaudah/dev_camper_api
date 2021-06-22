@@ -135,6 +135,7 @@ BootcampSchema.virtual('courses', {
 	ref: 'Course',
 	localField: '_id',
 	foreignField: 'bootcamp',
+	justOne: false,
 });
 
 // Cascade delete courses when a bootcamp is deleted
