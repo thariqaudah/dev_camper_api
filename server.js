@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
 const fileUpload = require('express-fileupload');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/error');
 
@@ -20,6 +21,9 @@ connectDB();
 
 const app = express();
 
+// Cookie Parser
+app.use(cookieParser());
+
 // Bodyparser middleware
 app.use(express.json());
 
@@ -28,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Morgan middleware
 if (process.env.NODE_ENV === 'development') {
-	app.use(morgan('dev'));
+  app.use(morgan('dev'));
 }
 
 // File upload
@@ -45,14 +49,14 @@ app.use(errorHandler);
 // Listen to PORT
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () =>
-	console.log(
-		`App is running in ${process.env.NODE_ENV} mode on port ${PORT}`.bold.cyan
-	)
+  console.log(
+    `App is running in ${process.env.NODE_ENV} mode on port ${PORT}`.bold.cyan
+  )
 );
 
 // Handle unhandled promise rejection
 process.on('unhandledRejection', (err, promise) => {
-	console.log(`Error: ${err.message}`.red);
-	// Exit server
-	server.close(() => process.exit(1));
+  console.log(`Error: ${err.message}`.red);
+  // Exit server
+  server.close(() => process.exit(1));
 });
