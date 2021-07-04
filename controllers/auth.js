@@ -1,5 +1,6 @@
 const ErrorResponse = require('../utils/ErrorResponse');
 const asyncHandler = require('../middlewares/async');
+const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User');
 
 // @desc      Register new user
@@ -35,19 +36,79 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   // Check if email is exist
   if (!user) {
-    return next(new ErrorResponse('Incorrect credentials', 401));
+    return next(new ErrorResponse('Invalid credentials', 401));
   }
 
   // Verfiy if password match with the hashed password in database
   const isVerify = await user.verifyPassword(password);
   if (!isVerify) {
-    return next(new ErrorResponse(`Incorrect credentials`, 401));
+    return next(new ErrorResponse(`Invalid credentials`, 401));
   }
 
   sendTokenResponse(user, 200, res);
 });
 
-// Custome method for Sending Token Response
+// @desc      Get logged in user
+// @route     GET api/v1/auth/me
+// @access    Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+// @desc      Forgot password
+// @route     POST api/v1/auth/forgotpassword
+// @access    Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new ErrorResponse('There is no user with that email', 404));
+  }
+
+  // Get reset password token
+  const resetToken = user.getResetPasswordToken();
+
+  // Save to database
+  await user.save({ validateBeforeSave: false });
+
+  // Construct reset password url
+  const resetUrl = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/auth/resetpassword`;
+
+  // Create message
+  const message = `You got this email because you (or someone else) request a reset password. Please make a PUT request to this url: \n ${resetUrl}`;
+
+  // Send email for reset token url
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Reset Password Token',
+      message,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: 'Email sent',
+    });
+  } catch (err) {
+    console.error(err);
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    next(new ErrorResponse(`Email could not be sent`, 500));
+  }
+});
+
+// Helper for Sending Token Response
 const sendTokenResponse = (user, statusCode, res) => {
   // Get JWT token
   const token = user.getSignedJwtToken();
@@ -68,15 +129,3 @@ const sendTokenResponse = (user, statusCode, res) => {
     token,
   });
 };
-
-// @desc      Get logged in user
-// @route     GET api/v1/auth/me
-// @access    Private
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
-
-  res.status(200).json({
-    success: true,
-    data: user,
-  });
-});
